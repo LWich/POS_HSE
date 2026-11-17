@@ -1,0 +1,48 @@
+name: pos-assessment
+
+services:
+  api:
+    build:
+      context: .
+      target: runtime
+    environment:
+      POS_DB_PATH: "${POS_DB_PATH:-/data/pos.sqlite3}"
+      POS_DB_TIMEOUT: "${POS_DB_TIMEOUT:-10}"
+      POS_API_HOST: "${POS_DOCKER_API_HOST:-0.0.0.0}"
+      POS_API_PORT: "${POS_API_PORT:-8000}"
+      POS_HEALTH_REQUEST_TIMEOUT: "${POS_HEALTH_REQUEST_TIMEOUT:-2}"
+    ports:
+      - "${POS_BIND_HOST:-127.0.0.1}:${POS_PORT:-8000}:${POS_API_PORT:-8000}"
+    volumes:
+      - pos-data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          from urllib.request import urlopen;
+          from pos.settings import Settings;
+          settings = Settings();
+          host = {'0.0.0.0': '127.0.0.1', '::': '::1'}.get(settings.api_host, settings.api_host);
+          host = f'[{host}]' if ':' in host else host;
+          urlopen(f'http://{host}:{settings.api_port}/health', timeout=settings.health_request_timeout).close()
+      interval: "${POS_HEALTH_INTERVAL:-5s}"
+      timeout: "${POS_HEALTH_TIMEOUT:-3s}"
+      retries: ${POS_HEALTH_RETRIES:-5}
+      start_period: "${POS_HEALTH_START_PERIOD:-5s}"
+
+  test:
+    profiles: [test]
+    build:
+      context: .
+      target: test
+
+  quality:
+    profiles: [quality]
+    build:
+      context: .
+      target: quality
+
+volumes:
+  pos-data:

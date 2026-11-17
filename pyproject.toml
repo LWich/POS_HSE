@@ -1,0 +1,60 @@
+[project]
+name = "pos-assessment"
+version = "1.0.0"
+requires-python = ">=3.12"
+
+[dependency-groups]
+dev = [
+    "bandit>=1.8,<2",
+    "basedpyright>=1.30,<2",
+    "lizard>=1.17,<2",
+    "mutmut>=3.6,<4",
+    "mypy>=1.15,<3",
+    "pre-commit>=4,<5",
+    "pylint>=3.3,<5",
+    "pytest-cov>=6,<8",
+    "pytest>=8,<10",
+    "radon>=6,<7",
+    "ruff>=0.11,<1",
+    "vulture>=2.14,<3",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 105
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "S"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pos"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["pos", "tests"]
+strict = true
+
+[tool.basedpyright]
+include = ["pos", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["pos"]
+branch = true
+patch = ["subprocess"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
+
+[tool.mutmut]
+source_paths = ["pos/"]
+only_mutate = ["pos/domain/*.py"]
+pytest_add_cli_args_test_selection = ["tests/test_domain.py"]
